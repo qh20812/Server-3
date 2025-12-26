@@ -11,6 +11,8 @@ const controller = new UserController(service);
 
 router.get("/", controller.list);
 router.post("/", controller.create);
+router.post("/register", controller.register);
+router.get("/email/:email", controller.getByEmail);
 router.get("/:id", controller.getById);
 
 export const userRouter = router;

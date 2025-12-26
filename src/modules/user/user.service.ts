@@ -67,6 +67,18 @@ export class UserService {
     if (!emailPattern.test(email)) {
       throw ApiError.badRequest("Invalid email format");
     }
-    
+    // find by email
+    const existing = await this.userDb.findByEmail(email);
+    if (existing) {
+      throw ApiError.conflict("Email already in use");
+    }
+    // find by id
+    const passwordHash = await bcrypt.hash(password, 10);
+    const role = input.role ?? "customer";
+    await this.userDb.create({
+      email,
+      passwordHash,
+      role,
+    } as any);
   }
 }
