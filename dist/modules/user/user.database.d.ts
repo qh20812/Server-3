@@ -14,5 +14,12 @@ export declare class UserDatabase {
     create(input: Omit<UserDoc, "createdAt" | "updatedAt">): Promise<UserDoc & {
         _id: ObjectId;
     }>;
+    insertMany(inputs: Array<Omit<UserDoc, "createdAt" | "updatedAt">>): Promise<Array<UserDoc & {
+        _id: ObjectId;
+    }>>;
+    updateById(id: string, updates: Partial<UserDoc>): Promise<(UserDoc & {
+        _id: ObjectId;
+    }) | null>;
+    deleteById(id: string): Promise<boolean>;
 }
 //# sourceMappingURL=user.database.d.ts.map

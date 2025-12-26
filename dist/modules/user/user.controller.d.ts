@@ -6,5 +6,9 @@ export declare class UserController {
     list: (_req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
     create: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
     getById: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+    register: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+    getByEmail: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+    updateById: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+    deleteById: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
 }
 //# sourceMappingURL=user.controller.d.ts.map

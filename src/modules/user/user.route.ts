@@ -14,5 +14,7 @@ router.post("/", controller.create);
 router.post("/register", controller.register);
 router.get("/email/:email", controller.getByEmail);
 router.get("/:id", controller.getById);
+router.put("/:id", controller.updateById);
+router.delete("/:id", controller.deleteById);
 
 export const userRouter = router;

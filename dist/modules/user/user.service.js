@@ -19,20 +19,81 @@ export class UserService {
         return user ? toPublic(user) : null;
     }
     async create(input) {
-        const existing = await this.userDb.findByEmail(input.email);
+        const email = input.email.trim().toLowerCase();
+        // basic email validation
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email))
+            throw ApiError.badRequest("Invalid email format");
+        const existing = await this.userDb.findByEmail(email);
         if (existing)
             throw ApiError.conflict("Email already in use");
-        if (!input.password || input.password.length < 6) {
+        const password = input.password;
+        if (!password || password.length < 6) {
             throw ApiError.badRequest("Password must be at least 6 characters");
         }
-        const passwordHash = await bcrypt.hash(input.password, 10);
+        const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+        if (specialCharPattern.test(password)) {
+            throw ApiError.badRequest("Password must not contain special characters");
+        }
+        if (/[A-Z]/.test(password)) {
+            throw ApiError.badRequest("Password must not contain uppercase letters");
+        }
+        const passwordHash = await bcrypt.hash(password, 10);
         const role = input.role ?? "customer";
         const inserted = await this.userDb.create({
-            email: input.email,
+            email,
             passwordHash,
             role,
         });
         return toPublic(inserted);
+    }
+    async updateById(id, input) {
+        const existing = await this.userDb.findById(id);
+        if (!existing)
+            throw ApiError.notFound("User not found");
+        const updates = {};
+        if (input.email) {
+            const email = input.email.trim().toLowerCase();
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email))
+                throw ApiError.badRequest("Invalid email format");
+            const byEmail = await this.userDb.findByEmail(email);
+            if (byEmail && String(byEmail._id) !== String(existing._id)) {
+                throw ApiError.conflict("Email already in use");
+            }
+            updates.email = email;
+        }
+        // mật khẩu phải có ít nhất 1 ký tự đặt biệt, 1 chữ hoa, 1 chữ thường, và 1 số
+        if (input.password) {
+            const password = input.password;
+            if (password.length < 6)
+                throw ApiError.badRequest("Mật khẩu phải có ít nhất 6 ký tự");
+            const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+            if (specialCharPattern.test(password)) {
+                throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 ký tự đặt biệt");
+            }
+            if (/[A-Z]/.test(password)) {
+                throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 chữ hoa");
+            }
+            if (/[a-z]/.test(password) === false) {
+                throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 chữ thường");
+            }
+            if (/\d/.test(password) === false) {
+                throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 số");
+            }
+            updates.passwordHash = await bcrypt.hash(password, 10);
+        }
+        if (input.role)
+            updates.role = input.role;
+        const updated = await this.userDb.updateById(id, updates);
+        if (!updated)
+            throw ApiError.notFound("User not found");
+        return toPublic(updated);
+    }
+    async deleteById(id) {
+        const ok = await this.userDb.deleteById(id);
+        if (!ok)
+            throw ApiError.notFound("User not found");
     }
     async register(input) {
         const email = input.email.trim().toLowerCase();
@@ -44,6 +105,31 @@ export class UserService {
             throw ApiError.badRequest("Password must be at least 6 characters");
         }
         // btvn: bắt lỗi ký tự đặt biệt & chữ viết hoa
+        const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+        if (specialCharPattern.test(password)) {
+            throw ApiError.badRequest("Password must not contain special characters");
+        }
+        if (/[A-Z]/.test(password)) {
+            throw ApiError.badRequest("Password must not contain uppercase letters");
+        }
+        // kiểm tra định dạng email hợp lệ
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            throw ApiError.badRequest("Invalid email format");
+        }
+        // find by email
+        const existing = await this.userDb.findByEmail(email);
+        if (existing) {
+            throw ApiError.conflict("Email already in use");
+        }
+        // hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+        const role = input.role ?? "customer";
+        await this.userDb.create({
+            email,
+            passwordHash,
+            role,
+        });
     }
 }
 //# sourceMappingURL=user.service.js.map

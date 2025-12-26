@@ -59,4 +59,28 @@ export class UserController {
       return next(err);
     }
   };
+
+  updateById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      if (!id) throw ApiError.badRequest("id is required");
+      const { email, password, role } = req.body ?? {};
+      const updated = await this.userService.updateById(id, { email, password, role });
+      return res.json({ data: updated });
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  deleteById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      if (!id) throw ApiError.badRequest("id is required");
+      await this.userService.deleteById(id);
+      return res.status(204).send();
+    } catch (err) {
+      return next(err);
+    }
+  };
 }
+

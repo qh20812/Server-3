@@ -7,6 +7,12 @@ export declare class UserService {
     findById(id: string): Promise<UserPublic | null>;
     findByEmail(email: string): Promise<UserPublic | null>;
     create(input: CreateUserInput): Promise<UserPublic>;
+    updateById(id: string, input: {
+        email?: string;
+        password?: string;
+        role?: UserRole;
+    }): Promise<UserPublic>;
+    deleteById(id: string): Promise<void>;
     register(input: {
         email: string;
         password: string;
