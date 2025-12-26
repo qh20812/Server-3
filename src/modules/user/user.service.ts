@@ -33,17 +33,8 @@ export class UserService {
     if (existing) throw ApiError.conflict("Email already in use");
 
     const password = input.password;
-    if (!password || password.length < 6) {
-      throw ApiError.badRequest("Password must be at least 6 characters");
-    }
-
-    const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
-    if (specialCharPattern.test(password)) {
-      throw ApiError.badRequest("Password must not contain special characters");
-    }
-    if (/[A-Z]/.test(password)) {
-      throw ApiError.badRequest("Password must not contain uppercase letters");
-    }
+    if (!password) throw ApiError.badRequest("Password is required");
+    this.validatePassword(password);
 
     const passwordHash = await bcrypt.hash(password, 10);
     const role = input.role ?? "customer";
@@ -73,23 +64,9 @@ export class UserService {
       }
       updates.email = email;
     }
-    // mật khẩu phải có ít nhất 1 ký tự đặt biệt, 1 chữ hoa, 1 chữ thường, và 1 số
     if (input.password) {
       const password = input.password;
-      if (password.length < 6) throw ApiError.badRequest("Mật khẩu phải có ít nhất 6 ký tự");
-      const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
-      if (specialCharPattern.test(password)) {
-        throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 ký tự đặt biệt");
-      }
-      if (/[A-Z]/.test(password)) {
-        throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 chữ hoa");
-      }
-      if (/[a-z]/.test(password) === false) {
-        throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 chữ thường");
-      }
-      if (/\d/.test(password) === false) {
-        throw ApiError.badRequest("Mật khẩu phải có ít nhất 1 số");
-      }
+      this.validatePassword(password);
       updates.passwordHash = await bcrypt.hash(password, 10);
     }
 
@@ -98,6 +75,15 @@ export class UserService {
     const updated = await this.userDb.updateById(id, updates as any);
     if (!updated) throw ApiError.notFound("User not found");
     return toPublic(updated as any);
+  }
+
+  private validatePassword(password: string) {
+    if (!password || password.length < 6) throw ApiError.badRequest("Password must be at least 6 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character");
+    const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+    if (!specialCharPattern.test(password)) throw ApiError.badRequest("Password must include at least one special character");
+    if (!/[A-Z]/.test(password)) throw ApiError.badRequest("Password must include at least one uppercase letter");
+    if (!/[a-z]/.test(password)) throw ApiError.badRequest("Password must include at least one lowercase letter");
+    if (!/\d/.test(password)) throw ApiError.badRequest("Password must include at least one number");
   }
 
   async deleteById(id: string): Promise<void> {
@@ -115,17 +101,8 @@ export class UserService {
       throw ApiError.badRequest("Invalid email address");
     }
     const password = input.password;
-    if (password.length < 6) {
-      throw ApiError.badRequest("Password must be at least 6 characters");
-    }
-    // btvn: bắt lỗi ký tự đặt biệt & chữ viết hoa
-    const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
-    if (specialCharPattern.test(password)) {
-      throw ApiError.badRequest("Password must not contain special characters");
-    }
-    if (/[A-Z]/.test(password)) {
-      throw ApiError.badRequest("Password must not contain uppercase letters");
-    }
+    if (!password) throw ApiError.badRequest("Password is required");
+    this.validatePassword(password);
     // kiểm tra định dạng email hợp lệ
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {

@@ -12,6 +12,7 @@ export declare class UserService {
         password?: string;
         role?: UserRole;
     }): Promise<UserPublic>;
+    private validatePassword;
     deleteById(id: string): Promise<void>;
     register(input: {
         email: string;

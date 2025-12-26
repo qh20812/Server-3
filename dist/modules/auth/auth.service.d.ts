@@ -9,8 +9,17 @@ export declare class AuthService {
         password: string;
         userAgent?: string;
         ip?: string;
-    }): Promise<void>;
-    refresh(): Promise<void>;
-    logout(): Promise<void>;
+    }): Promise<{
+        accessToken: string;
+        refreshToken: string;
+    }>;
+    refresh(token: string, opts?: {
+        userAgent?: string | string[] | undefined;
+        ip?: string;
+    }): Promise<{
+        accessToken: string;
+        refreshToken: string;
+    }>;
+    logout(token: string): Promise<void>;
 }
 //# sourceMappingURL=auth.service.d.ts.map

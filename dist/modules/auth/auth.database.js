@@ -9,13 +9,13 @@ export class AuthDatabase {
     }
     async findActiveByToken(tokenId) {
         return this.col().findOne({
-            tokenId,
-            revoked: { $exists: false },
+            token: tokenId,
+            revokedAt: { $exists: false },
             expiresAt: { $gt: new Date() },
         });
     }
     async revoke(tokenId, replaceByTokenId) {
-        await this.col().updateOne({ tokenId }, {
+        await this.col().updateOne({ token: tokenId }, {
             $set: {
                 revokedAt: new Date(),
                 ...(replaceByTokenId ? { replaceByTokenId } : {}),
